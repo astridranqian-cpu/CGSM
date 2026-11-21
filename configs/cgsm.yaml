@@ -1,0 +1,46 @@
+protocol: cgsm_fixed77_20
+data:
+  root: data/CAMELS_FINAL
+  forcing_subdir: basin_mean_forcing/nldas_extended
+  streamflow_subdir: usgs_streamflow
+  attr_subdir: camels_us
+  look_back: 365
+  temporal_train_ratio: 0.70
+  temporal_val_ratio: 0.15
+  batch_size: 256
+  num_workers: 0
+  seed: 42
+  ddf: 3.0
+  streamflow_missing_token: -999.0
+model:
+  n_dynamic: 11
+  n_static: 40
+  tcn_channels: [64, 64, 128, 128]
+  kernel_size: 7
+  dropout: 0.3
+  fusion_dim: 48
+  ric_gain_init: 0.35
+  ric_lag_days: 3
+  swe_alpha_init: 0.12
+  temperature_threshold_c: 0.0
+  prcp_bypass_gain_init: 1.5
+  prcp_skip_gain_init: 2.0
+loss:
+  huber_beta: 1.0
+  swe_residual_reg: 0.0005
+  melt_monotone_reg: 0.001
+  q_nonneg_mm_reg: 0.0001
+training:
+  seed: 42
+  epochs: 50
+  patience: 10
+  learning_rate: 0.0005
+  weight_decay: 0.0001
+  lr_warmup_epochs: 3
+  amp: true
+  fast_cudnn: true
+  selection_metric: source_validation_macro_NSE
+evaluation:
+  lnse_mode: zero_clip
+  epsilon: 0.01
+  peak_quantile: 0.90
