@@ -1,6 +1,6 @@
 # CGSM
 
-CGSM is a process-guided model for runoff prediction in snow-influenced ungauged catchments. It combines lagged-correlation input weighting (RIC), catchment conditioning, FiLM-modulated temporal convolutions, and snow-state refinement. Training uses a runoff-fitting loss and soft physical constraints.
+The **Catchment-Conditioned Process-Guided Streamflow Model (CGSM)** is a process-guided deep learning framework for daily streamflow prediction in snow-influenced ungauged catchments. It combines runoff–input correlation (RIC) weighting, catchment conditioning, FiLM-modulated temporal convolutions, and snow water equivalent (SWE) refinement. The training objective combines Huber loss with soft physical constraints.
 
 The default setup uses **40 static attributes, 11 dynamic inputs, a 365-day input window, and a fixed split of 77 source basins and 20 held-out basins**. This repository provides the CGSM implementation, configuration, and basin lists. Obtain the CAMELS-US data from the sources below; model checkpoints are produced by training.
 
@@ -118,8 +118,10 @@ Evaluation uses CPU by default; add `--device cuda` for GPU inference. Model str
 ### Evaluate existing predictions
 
 ```bash
-python scripts/evaluate.py --predictions outputs/S0/predictions.npz --output outputs/metrics
+python scripts/evaluate.py --predictions outputs/S0/predictions.npz --region S0 --output outputs/metrics
 ```
+
+For predictions from another region, set `--region` accordingly so that `evaluation_protocol.json` records the correct evaluation set.
 
 An input NPZ file must contain equally sized arrays named `basin_id`, `date`, `q_obs`, and `q_pred`. Use dates in `YYYY-MM-DD` format and runoff in mm/day. Each basin-date pair must be unique, with finite predictions on valid observation dates.
 
