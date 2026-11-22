@@ -121,7 +121,7 @@ class CausalGuidedSnowmeltModel(nn.Module):
         )
         self.phys_fusion_gate = nn.Linear(dpf * 2, dpf)
 
-        gate_hid = min(64, max(8, film_stat_dim // 4))
+        gate_hid = 28
         self.swe_residual_gate = nn.Sequential(
             nn.Linear(film_stat_dim, gate_hid),
             nn.GELU(),
