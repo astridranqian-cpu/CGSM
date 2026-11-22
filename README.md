@@ -2,7 +2,7 @@
 
 CGSM is a process-guided model for runoff prediction in snow-influenced ungauged catchments. It combines lagged-correlation input weighting (RIC), catchment conditioning, FiLM-modulated temporal convolutions, and snow-state refinement. Training uses a runoff-fitting loss and soft physical constraints.
 
-The default setup uses **40 static attributes, 11 dynamic inputs, a 365-day input window, and a fixed split of 77 source basins and 20 held-out basins**. The SWE residual gate has 28 hidden units in `cgsm/model.py`. This project includes the implementation, configuration, basin lists, and a local test checkpoint in `cgsm40/`. Obtain the CAMELS-US data from the sources below for training or full evaluation.
+The default setup uses **40 static attributes, 11 dynamic inputs, a 365-day input window, and a fixed split of 77 source basins and 20 held-out basins**. The SWE residual gate has 28 hidden units in `cgsm/model.py`. This repository provides the model implementation, training configurations, and basin partitions. Obtain the CAMELS-US data from the sources below, train a model using the provided commands, and evaluate the resulting checkpoint.
 
 ## Installation
 
@@ -25,26 +25,6 @@ python -m pip install -r requirements.txt
 ```
 
 For a specific CPU or CUDA build, follow the [official PyTorch installation instructions](https://pytorch.org/get-started/previous-versions/) for the version pinned in `requirements.txt`.
-
-## Load the local test checkpoint
-
-`cgsm40/model.pt` and `cgsm40/checkpoint_metadata.json` form a matched pair. Keep them together. The current checkpoint is for loading and inference tests; final training and evaluation will produce the checkpoint used for formal results.
-
-Verify strict loading from the project root; this command requires neither CAMELS data nor a GPU:
-
-```bash
-python -c "from cgsm.io import load_config, load_checkpoint; m,c,p=load_checkpoint('cgsm40/model.pt',load_config()); print('Loaded:',len(p['static_columns']),'static inputs; gate width:',m.swe_residual_gate[0].out_features)"
-```
-
-Expected dimensions are **40 static inputs and a gate width of 28**. Loading uses the implementation in `cgsm/model.py`; `cgsm40/` stores checkpoint files only.
-
-Evaluate the current checkpoint after providing the CAMELS-US files:
-
-```bash
-python scripts/evaluate.py --data-root data/CAMELS_FINAL --checkpoint cgsm40/model.pt --region S0 --device cpu --output outputs/S0_local_test
-```
-
-Use a new output directory for every evaluation. Full evaluation requires the source data; successful checkpoint loading alone does not establish prediction accuracy.
 
 ## Data preparation
 
@@ -93,7 +73,7 @@ Prepare the data and save preprocessing metadata:
 python scripts/train.py --data-root data/CAMELS_FINAL --prepare-only --output outputs/preflight
 ```
 
-Train a new CGSM model. This command starts from fresh initialization; it does not automatically load or fine-tune the checkpoint in `cgsm40/`:
+Train a new CGSM model from fresh initialization:
 
 ```bash
 python scripts/train.py --data-root data/CAMELS_FINAL --output outputs/cgsm
@@ -115,7 +95,7 @@ Keep `model.pt` and `checkpoint_metadata.json` together for inference. If metada
 
 ## Evaluation
 
-After the training command above finishes, evaluate its checkpoint on the fixed held-out basins. For the existing local test checkpoint, use the `cgsm40/model.pt` command shown earlier:
+After training finishes, evaluate the generated checkpoint on the fixed held-out basins. Keep `outputs/cgsm/model.pt` and `outputs/cgsm/checkpoint_metadata.json` together:
 
 ```bash
 python scripts/evaluate.py --data-root data/CAMELS_FINAL --checkpoint outputs/cgsm/model.pt --region S0 --output outputs/S0
@@ -158,7 +138,6 @@ Each evaluation writes `predictions.npz`, `per_basin_metrics.csv`, `pooled_metri
 | `configs/cgsm.yaml` | Data, model, training, and evaluation settings |
 | `configs/input_schema.json` | Input names and order |
 | `cgsm/model.py` | The model implementation used by both training and evaluation |
-| `cgsm40/model.pt`, `cgsm40/checkpoint_metadata.json` | Paired local test weights and preprocessing metadata |
 | `cgsm/modules/` | RIC, FiLM, SWE refinement, and TCN components |
 | `cgsm/dataset.py`, `cgsm/pipeline.py` | Data loading, preprocessing, and sample construction |
 | `cgsm/losses.py`, `cgsm/training.py` | Loss functions, training, and validation |
